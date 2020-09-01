@@ -14,6 +14,7 @@ function App() {
   });
   const [shownItems, setShownItems] = useState([]);
   const [timeStamp, setTimeStamp] = useState("");
+  const [timePassed, setTimePassed] = useState("00:00");
   
 
   function fetchItems() {
@@ -24,10 +25,33 @@ function App() {
     fetch(linkWithCurrentTimeStamp)
       .then(response => response.json())
       .then(data => {
-        console.log(data);
         setItems(data);
       });
   }
+
+  useEffect(() => {
+    const refreshEverySec = setInterval(() => {
+      const currentTimeStamp = + new Date();
+      const timeDiff = Math.abs(currentTimeStamp - timeStamp);
+      const timeDiffInSec = Math.floor(timeDiff / 1000);
+      const minutes = Math.floor(timeDiffInSec / 60);
+      const seconds = timeDiffInSec % 60;
+
+      console.log({timeDiffInSec, minutes, seconds});
+
+      function str_pad_left(string, pad, length) {
+        return (new Array(length + 1).join(pad) + string).slice(-length);
+      }
+
+      const finalTime = str_pad_left(minutes, '0', 2) + ':' + str_pad_left(seconds, '0', 2);
+
+      setTimePassed(finalTime);
+    }, 1000);
+
+    return () => {
+      clearInterval(refreshEverySec);
+    }
+  }, [timeStamp]);
 
   useEffect(() => {
     fetchItems();
@@ -61,7 +85,6 @@ function App() {
   function handleChange(e) {
     const { id, value, type, checked } = e.target;
 
-    console.log(value);
     setSettings(settings => ({
       ...settings,
       [id]: type === "checkbox" ? checked : value
@@ -70,7 +93,7 @@ function App() {
 
   return (
     <div className="App">
-      <p>{timeStamp}</p>
+      <p>{timePassed}</p>
       <button onClick={refreshItems}>Refresh items</button>
       <div className="settings">
         {
