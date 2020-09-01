@@ -37,7 +37,7 @@ function App() {
       const minutes = Math.floor(timeDiffInSec / 60);
       const seconds = timeDiffInSec % 60;
 
-      if (minutes >= 1) {
+      if (minutes >= 3) {
         fetchItems();
       }
 
