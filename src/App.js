@@ -37,7 +37,9 @@ function App() {
       const minutes = Math.floor(timeDiffInSec / 60);
       const seconds = timeDiffInSec % 60;
 
-      console.log({timeDiffInSec, minutes, seconds});
+      if (minutes >= 1) {
+        fetchItems();
+      }
 
       function str_pad_left(string, pad, length) {
         return (new Array(length + 1).join(pad) + string).slice(-length);
