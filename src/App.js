@@ -64,17 +64,23 @@ function App() {
       let isF2pOnly = settings.freeItemsOnly === true;
       let isMembersOnly = settings.membersItemsOnly === true;
 
+      const [buy, sell] = getPrices(x);
+
       return ((isMembersOnly && x.members === true) || !isMembersOnly)
         && ((isF2pOnly && x.members === false) || !isF2pOnly)
-        && (x.sell_average >= settings.minPrice)
-        && (x.sell_average <= settings.maxPrice || settings.maxPrice === 0 || settings.maxPrice === "0")
-        && x.overall_quantity >= settings.minOverallQuantity
-        && (x.buy_average - x.sell_average) / x.buy_average * 100 >= settings.minPercentageProfit
-        && x.buy_average !== 0 && x.sell_average !== 0;
+        && (buy >= settings.minPrice)
+        && (buy <= settings.maxPrice || settings.maxPrice === 0 || settings.maxPrice === "0")
+        && (x.overall_quantity >= settings.minOverallQuantity)
+        && (sell - buy) / buy * 100 >= settings.minPercentageProfit
+        && buy !== 0
+        && sell !== 0;
     }).sort((a, b) => {
-      const aPerc = (a.buy_average - a.sell_average) / a.buy_average;
-      const bPerc = (b.buy_average - b.sell_average) / b.buy_average;
-      return bPerc - aPerc;
+      const [aBuy, aSell] = getPrices(a);
+      const [bBuy, bSell] = getPrices(b);
+      const aRatio = (aSell - aBuy) / aBuy;
+      const bRatio = (bSell - bBuy) / bBuy;
+
+      return bRatio - aRatio;
     });
 
     setShownItems(itemsArr);
@@ -91,6 +97,12 @@ function App() {
       ...settings,
       [id]: type === "checkbox" ? checked : value
     }));
+  }
+
+  function getPrices(item) {
+    const buy = item.sell_average;
+    const sell = item.buy_average;
+    return [buy, sell];
   }
 
   return (
@@ -122,13 +134,14 @@ function App() {
       <div className="item-container">
         {
           shownItems.map(x => {
+            const [buy, sell] = getPrices(x);
             return (
               <div className="item" key={x.id}>
                 <p className="item__name">{x.name}</p>
-                <p><b>Buy:</b> {x.sell_average}</p>
-                <p><b>Sell:</b> {x.buy_average}</p>
+                <p><b>Buy:</b> {buy}</p>
+                <p><b>Sell:</b> {sell}</p>
                 <p><b>Qty:</b> {x.overall_quantity}</p>
-                <p><b>Profit:</b> {x.buy_average - x.sell_average} ({((x.buy_average - x.sell_average) / x.buy_average * 100).toFixed(2)}%)</p>
+                <p><b>Profit:</b> {sell - buy} ({((sell - buy) / buy * 100).toFixed(2)}%)</p>
               </div>
             );
           })
